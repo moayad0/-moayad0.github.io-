@@ -1,0 +1,190 @@
+---
+layout: page
+title: Classroom App
+permalink: /classroom-app/
+---
+
+<link rel="stylesheet" href="{{ '/assets/css/classroom-app.css' | relative_url }}">
+
+<section class="classroom-app">
+  <div class="card-shell">
+    <div class="flex-between">
+      <div>
+        <h1>Teacher & Student Workspace / مساحة المعلم والطالب</h1>
+        <p class="helper-text">Bilingual-ready controls with inline validation, safe uploads, and print-friendly reports.</p>
+      </div>
+      <div class="header-actions no-print" data-teacher-only>
+        <button id="generateReportBtn" class="secondary">Generate Report / إنشاء تقرير</button>
+        <button id="archiveYearBtn">Archive Year / أرشفة السنة</button>
+        <select id="archiveSelect"></select>
+        <button id="restoreArchiveBtn" class="flat">Restore</button>
+      </div>
+    </div>
+    <div class="print-banner print-only">
+      <strong>School Header / شعار المدرسة</strong>
+      <p>Date: {{ site.time | date: '%d %B %Y' }}</p>
+    </div>
+  </div>
+
+  <div class="classroom-grid">
+    <div class="card-shell" id="teacherLoginCard">
+      <h2>Teacher Sign-In / دخول المعلم</h2>
+      <form id="teacherLoginForm" class="form-grid">
+        <label>Email / البريد الإلكتروني <input type="email" name="teacherEmail" required></label>
+        <label>Password / كلمة المرور <input type="password" name="teacherPassword" required></label>
+        <button type="submit">Sign In / تسجيل الدخول</button>
+        <div id="teacherLoginError" class="error-text"></div>
+      </form>
+    </div>
+
+    <div class="card-shell" data-teacher-only>
+      <div class="flex-between">
+        <h2>Teacher Controls / أدوات المعلم</h2>
+        <button id="teacherLogout" class="flat">Sign Out / تسجيل الخروج</button>
+      </div>
+      <p class="lang-note">Manage classes, grading rules, students, and review queue.</p>
+    </div>
+  </div>
+
+  <div class="classroom-grid" data-teacher-only>
+    <div class="card-shell">
+      <h3>Classes / الصفوف</h3>
+      <form id="classForm" class="form-grid two-cols">
+        <label>Class Name / اسم الصف <input type="text" name="className" required></label>
+        <label>Section / الشعبة <input type="text" name="classSection" required></label>
+        <label>Academic Year / السنة الدراسية <input type="text" name="classYear" required></label>
+        <button type="submit">Save / حفظ</button>
+        <div id="classError" class="error-text"></div>
+      </form>
+      <div id="classList"></div>
+    </div>
+
+    <div class="card-shell">
+      <h3>Grading Rules / قواعد الدرجات</h3>
+      <form id="ruleForm" class="form-grid two-cols">
+        <label>Rule Type / نوع القاعدة
+          <select name="ruleType">
+            <option value="project">Project / مشروع</option>
+            <option value="homework">Homework / واجب</option>
+          </select>
+        </label>
+        <label>Label / الاسم (EN/AR) <input type="text" name="ruleLabel" placeholder="Project / مشروع" required></label>
+        <label>Max Points / الحد الأعلى <input type="number" name="rulePoints" min="1" required></label>
+        <button type="submit">Save Rule / حفظ القاعدة</button>
+        <div id="ruleError" class="error-text"></div>
+      </form>
+      <div id="gradeRuleList" class="form-grid"></div>
+
+      <h4>Re-submission Policy / سياسة إعادة التسليم</h4>
+      <form id="resubmissionForm" class="form-grid two-cols">
+        <label><input type="checkbox" name="allowResubmission" checked> Allow re-submissions / السماح بإعادة التسليم</label>
+        <label>Attempt to count / المحاولة المعتمدة
+          <select name="strategy">
+            <option value="latest">Latest / الأخيرة</option>
+            <option value="highest">Highest / الأعلى</option>
+            <option value="first">First / الأولى</option>
+          </select>
+        </label>
+        <button type="submit" class="secondary">Apply Policy / تطبيق السياسة</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card-shell" data-teacher-only>
+    <div class="flex-between">
+      <h3>Students / الطلاب</h3>
+      <p class="lang-note">Unique Student ID controls uploads and portal access.</p>
+    </div>
+    <form id="studentForm" class="form-grid two-cols">
+      <label>Name / الاسم <input type="text" name="studentName" required></label>
+      <label>Student ID / رقم الطالب <input type="text" name="studentId" required></label>
+      <label>Class / الصف
+        <select name="studentClass" id="studentClass" required></select>
+      </label>
+      <button type="submit">Add Student / إضافة طالب</button>
+      <div id="studentError" class="error-text"></div>
+    </form>
+    <div id="studentList"></div>
+  </div>
+
+  <div class="card-shell" data-teacher-only>
+    <div class="flex-between">
+      <h3>Review Queue / طابور المراجعة</h3>
+      <div class="list-inline">
+        <button id="bulkReturn" class="flat">Bulk Return / إعادة جماعية</button>
+        <button id="bulkGrade" class="secondary">Bulk Grade / تصحيح جماعي</button>
+      </div>
+    </div>
+    <div class="form-grid two-cols no-print">
+      <label>Class filter / تصفية الصف
+        <select id="queueFilterClass" data-queue-filter></select>
+      </label>
+      <label>Student / الطالب <input type="text" id="queueFilterStudent" data-queue-filter></label>
+      <label>Status / الحالة
+        <select id="queueFilterStatus" data-queue-filter>
+          <option value="">All / الكل</option>
+          <option value="submitted">submitted</option>
+          <option value="under review">under review</option>
+          <option value="graded">graded</option>
+          <option value="returned">returned</option>
+        </select>
+      </label>
+      <label>Assignment / المهمة <input type="text" id="queueFilterAssignment" data-queue-filter></label>
+    </div>
+    <div id="submissionQueue"></div>
+    <div id="previewPane" class="no-print"></div>
+  </div>
+
+  <div class="card-shell" data-teacher-only>
+    <h3>Analytics & Reports / التحليلات والتقارير</h3>
+    <div id="analytics" class="analytics-grid"></div>
+    <div id="printableReport" class="print-only"></div>
+  </div>
+
+  <div class="card-shell student-portal">
+    <h2>Student Portal / بوابة الطالب</h2>
+    <p class="lang-note">Log in with Student ID to upload, view grades, and see attempt history.</p>
+
+    <div id="studentLoginCard">
+      <form id="studentLoginForm" class="form-grid two-cols">
+        <label>Student ID / رقم الطالب <input type="text" name="loginStudentId" required></label>
+        <button type="submit">Enter / دخول</button>
+        <div id="studentLoginError" class="error-text"></div>
+      </form>
+    </div>
+
+    <div id="studentWorkspace" class="hidden">
+      <div class="flex-between">
+        <div>
+          <strong id="studentName"></strong>
+          <div class="helper-text" id="studentClass"></div>
+        </div>
+        <button class="flat" id="studentLogout">Logout / تسجيل الخروج</button>
+      </div>
+
+      <form id="uploadForm" class="form-grid two-cols no-print">
+        <label>Assignment name / اسم المهمة <input type="text" name="assignmentName" required></label>
+        <label>Type / النوع
+          <select name="assignmentType" required>
+            <option value="homework">Homework / واجب (max 5)</option>
+            <option value="project">Project / مشروع</option>
+          </select>
+        </label>
+        <label>Upload file / رفع ملف <input type="file" name="uploadFile" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" required></label>
+        <button type="submit" class="secondary">Submit / إرسال</button>
+        <div id="uploadError" class="error-text"></div>
+      </form>
+
+      <h4>Submission History / سجل التسليمات</h4>
+      <div id="studentSubmissionList"></div>
+    </div>
+  </div>
+
+  <div class="card-shell" data-teacher-only>
+    <h3>Year Archive / أرشيف السنة</h3>
+    <p class="helper-text">Archiving locks previous data (read-only) and clears active records. Restore an archived year anytime.</p>
+    <div id="archiveList" class="archive-list"></div>
+  </div>
+</section>
+
+<script src="{{ '/assets/js/classroom-app.js' | relative_url }}"></script>
